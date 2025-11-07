@@ -1,0 +1,464 @@
+/*@charset "utf-8";
+
+ //////   //////   //////    ///
+ //       //       //  //    ///
+   //     /////    ////      ///
+     //   //       // //     ///
+ /////    //////   //  //    ///
+
+
+
+
+/* CSS Document 
+.top
+{
+
+ font-family: 'Amaranth', sans-serif;
+  font-size: 22px;
+  text-align: center;
+  
+   
+}
+.top1
+{
+	
+ font-family: CloisterBlack BT;
+  font-size: 32px;
+  padding-right:75px;
+}
+.top2
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;
+  padding-right:75px;
+}
+.grade
+{
+	margin-top:0 auto;
+ font-family: 'Amaranth', sans-serif;
+  font-size: 14px;
+}
+.grade1
+{
+	margin-top:0 auto;
+ font-family: 'Amaranth', sans-serif;
+  font-size: 12px;
+}
+.student
+{
+ font-family: 'Amaranth', sans-serif;
+  font-size: 11px;
+}
+.migr
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 13px;
+   padding-left::60px;
+}
+.migr1
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 12px;
+   padding-left::60px;
+}
+.student_detail
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;
+    
+}
+.name
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;   
+}
+.mark_date
+{	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 11px;
+  padding-right:80px;
+}
+
+.diploma1
+{	
+ font-family: CloisterBlack BT;
+  font-size: 22px;   
+}
+.diploma2
+{	
+ font-family: CloisterBlack BT;
+  font-size: 32px;   
+}
+.diploma3
+{	
+ font-family: CloisterBlack BT;
+  font-size: 20px;   
+}
+.diploma4
+{	
+ font-family: CloisterBlack BT;
+  font-size: 48px;   
+}
+
+.barcod_num1 {
+	font-family: CloisterBlack BT;
+	font-size:26px;
+	margin-top:-34px;
+	letter-spacing:1px;
+	padding-left:202px;
+}
+.barcod_num2 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:102px;
+}
+.barcod_num3 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-32px;
+	letter-spacing:1px;
+	padding-left:82px;
+}
+.barcod_num4 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-32px;
+	letter-spacing:1px;
+	padding-left:72px;
+}
+.barcod_num5 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-32px;
+	letter-spacing:1px;
+	padding-left:162px;
+}
+.barcod_num6 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-27px;
+	letter-spacing:1px;
+	padding-left:452px;
+}
+
+.result_barcode {
+	width:608px;
+	height:auto;
+	float:left;
+	padding-left:0px;
+	margin-bottom:16px;
+}
+*/
+@charset "utf-8";
+/* CSS Document */
+@font-face { font-family: Loosey Sans; src: url('Loosey Sans.otf'); } 
+@font-face { font-family: Fujiyama Extra Bold Normal; src: url('Fujiyama.ttf'); } 
+@font-face { font-family: citym; src: url('CITYM.ttf'); }
+@font-face {font-family: cloistrk; src: url('cloistrk.ttf');}
+@font-face { font-family: CloisterBlack BT; src: url('MTCORSVA.TTF'); }
+@font-face { font-family: FLEURISH; src: url('FLEURISH.TTF'); }
+@font-face { font-family: verdana-font; src: url('verdana.ttf'); }
+@font-face { font-family: opensans-bold; src: url('opensans-bold.ttf'); }
+
+
+.top
+{
+
+ font-family: 'Amaranth', sans-serif;
+  font-size: 22px;
+  text-align: center;
+  
+   
+}
+.top1
+{
+	
+ font-family: CloisterBlack BT;
+  font-size: 32px;
+  padding-right:58px;
+}
+
+.usatop1
+{
+	
+ font-family: 'Fujiyama Extra Bold Normal';
+  font-size: 24px;  
+  color:#0552ff;
+  padding-right:50px;
+}
+.marksheet_top1
+{
+	
+ font-family: 'Fujiyama Extra Bold Normal';
+  font-size: 24px;  
+  color:#0552ff;
+  padding-right:50px;
+}
+.top-cnt{
+	 font-family: 'citym';
+  font-size: 24px;  
+  color:#0552ff;
+  
+}
+.opensans-bold{font-family: opensans-bold;}
+.date-of-issue{font-family: verdana-font;}
+.diploma_top1
+{
+	
+ font-family: 'Fujiyama Extra Bold Normal';
+  font-size: 30px;  
+  color:#0552ff;
+  padding-right:100px;
+  
+  
+}
+.top2
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;
+  padding-right:58px;
+}
+.grade
+{
+	margin-top:0 auto;
+ font-family: 'Amaranth', sans-serif;
+  font-size: 14px;
+}
+.grade1
+{
+	margin-top:0 auto;
+ font-family: 'Amaranth', sans-serif;
+  font-size: 12px;
+}
+.student
+{
+ font-family: 'Amaranth', sans-serif;
+  font-size: 11px;
+}
+.migr
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 13px;
+   padding-left::60px;
+}
+.migr1
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 13px;
+   padding-left::60px;
+}
+.student_detail
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;
+    
+}
+.name
+{
+	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 10px;   
+}
+.mark_date
+{	
+ font-family: 'Amaranth', sans-serif;
+  font-size: 11px;
+  padding-right:80px;
+  padding-top: 3px;
+  padding-bottom: 25px;
+}
+
+.diploma1
+{	
+ font-family: CloisterBlack BT;
+  font-size: 22px;   
+}
+.diploma-new
+{	
+ font-family: FLEURISH;
+  font-size: 32px;
+  white-space: nowrap;
+  text-transform: capitalize;   
+}
+.diploma2
+{	
+ font-family: CloisterBlack BT;
+  font-size: 32px;
+  white-space: nowrap;
+  text-transform: capitalize;   
+}
+.diploma3
+{	
+ font-family: CloisterBlack BT;
+  font-size: 20px;   
+}
+.diploma4
+{	
+ font-family: CloisterBlack BT;
+  font-size: 48px;   
+}
+
+.diploma1-new
+{	
+ font-family: cloistrk;
+  font-size: 22px;   
+}
+.diploma-new-font
+{	
+ font-family: cloistrk;
+  font-size: 32px;
+  white-space: nowrap;
+  text-transform: capitalize;   
+}
+.diploma2-new
+{	
+ font-family:cloistrk;
+  font-size: 32px;
+  white-space: nowrap;
+  text-transform: capitalize;   
+}
+.diploma3-new
+{	
+ font-family:cloistrk;
+  font-size: 20px;   
+}
+.diploma4-new
+{	
+ font-family:cloistrk;
+  font-size: 48px;   
+}
+
+.america-high
+{	
+ font-family: FLEURISH;
+  font-size: 52px;
+  margin-top:10px;
+  line-height:60px;
+}
+
+.barcod_num1 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:160px;
+	text-transform:capitalize !important;
+	white-space: nowrap;
+}
+.barcod_num2 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:65px;
+	white-space: nowrap;
+}
+.barcod_num3 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:80px;
+	
+}
+.barcod_num4 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-32px;
+	letter-spacing:1px;
+	padding-left:60px;
+}
+.barcod_num5 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-31px;
+	letter-spacing:1px;
+	padding-left:530px;
+
+}
+.barcod_num6 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:130px;
+}
+
+.result_barcode {
+	width:680px;
+	height:auto;
+	float:left;
+	padding-left:0px;
+	margin-bottom:16px;
+	font-family: 'Amaranth', sans-serif;
+	font-size:15px;
+	margin-top:1px;
+}
+
+.bw{-webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(100%);
+}
+
+.result_char {
+	width:608px;
+	text-align:center;
+	height:auto;
+	float:left;
+	padding-left:0px;
+	margin-bottom:17px;
+	font-family: 'Amaranth', sans-serif;
+	font-size:15px;
+}
+.char_num1 {
+	font-family: CloisterBlack BT;
+	font-size:26px;
+	margin-top:-34px;
+	letter-spacing:1px;
+	padding-left:122px;
+}
+.char_num2 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:22px;
+}
+.char_num3 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-right:60px;
+}
+.char_num4 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-left:25px;
+}
+.char_num5 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-30px;
+	letter-spacing:1px;
+	padding-right:205px;
+}
+.char_num6 {
+	font-family: CloisterBlack BT;
+	font-size:24px;
+	margin-top:-27px;
+	letter-spacing:1px;
+	padding-left:332px;
+}

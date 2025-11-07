@@ -1,0 +1,19 @@
+.wrapper {width:90%; height:auto;float:left;font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:24px; padding:10px 25px 10px 0;}
+.chart-new {zoom:1;	width:100%; height:auto; clear:both;}
+.chart-new:after {clear:both;content:'.';display:block;height:0;visibility:hidden}
+.chart-new li {	display:block;height:23px;margin-top:3px;position:relative}
+.chart-new li:before {color:#fff;content:attr(title);left:5px;position:absolute}
+.chart-new li.title:before {color:black;font-weight:bold;left:0}
+.chart-new li:first-child {	margin-top:0}
+.chart-new li .bar {background:#9accff;height:100%}
+.chart-new li .number {color:black;font-size:18px;font-weight:bold;padding-left:5px;position:absolute;top:-2px}
+.chart-new li.high .bar {background:green;}
+.chart-new li.high .number {color:green}
+.chart-new li.lower .bar {background:red}
+.chart-new li.lower .number {color:red}
+@media screen and (max-width: 480px) {
+.chart-new li {height:auto}
+.chart-new li:before {color:black;display:block;left:0;position:relative}
+.chart-new li.title:before {border-bottom:1px solid}
+.chart-new li .bar {height:23px}
+.chart-new li .number {display:block;left:0 !important;padding-left:0;position:relative;top:-8px}}

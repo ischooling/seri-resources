@@ -1,3 +1,13 @@
+
+:root{
+	--pc:#007a55;
+	--lbg:#ecfdf6;
+	--sc:#163fb3;
+}
+.primary-text{color:var(--pc) !important}
+.bg-p-light{background:var(--lbg) !important}
+.bg-primary, .bg-hover-primary:hover{background:var(--pc) !important}
+.bg-secondary, .bg-hover-secondary:hover{background:var(--sc) !important}
 .btn-primary, .feature-wrap h2, .navbar-nav, h1, h2, h3, h4, h5, h6 {
 	text-transform:uppercase
 }
@@ -1062,7 +1072,7 @@ a.accordion-toggle i {
 	-webkit-background:#90df00;
 	-o-background:#90df00;
 	background:#90df00;
-	color:#464646
+	/* color:#464646 */
 }
 .contantInfo h2 {
 	-moz-background:#6c009f;
@@ -1076,7 +1086,7 @@ a.accordion-toggle i {
 	-webkit-background:#90df00;
 	-o-background:#90df00;
 	background:#90df00;
-	color:#464646
+	/* color:#464646 */
 }
 .contantInfo h2 a {
 	color:#fff;
@@ -1101,7 +1111,7 @@ a.accordion-toggle i {
 	-webkit-background:#90df00;
 	-o-background:#90df00;
 	background:#90df00;
-	color:#464646
+	/* color:#464646 */
 }
 .contantInfo h5 {
 	color:#90df00;
@@ -1832,14 +1842,14 @@ textarea#message {
 	height:50px
 }
 .registration-form .form-control::-moz-placeholder {
-color:#fff!important
+color:#626262 !important
 }
 .registration-form input[type=text] {
-	color:#fff!important
+	color:#626262 !important
 }
 .registration-form .password, .registration-form .user {
-	background:#90df00;
-	color:#fff
+	/* background:#90df00; */
+	color:#626262
 }
 .widget {
 	margin-bottom:60px;

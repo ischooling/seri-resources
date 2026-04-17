@@ -389,6 +389,7 @@ function bindLeadRowActions() {
 function bindLeadUploadActions() {
 	$(document).off('click', '#openLeadUploadModalBtn').on('click', '#openLeadUploadModalBtn', function() {
 		resetLeadUploadState();
+		$("#leadUploadModal #submitLeadUploadBtn").show();
 		$('#leadUploadModal').modal('show');
 	});
 
@@ -398,6 +399,16 @@ function bindLeadUploadActions() {
 		resetLeadUploadState();
 	});
 }
+
+var debouncing = function (mainFun, delay) {
+  var timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      mainFun(...args);
+    }, delay);
+  };
+};
 
 var submitLeadUpload = debouncing(submitLeadUploadFun, 300);
 
@@ -429,6 +440,7 @@ function submitLeadUploadFun(){
 				message += '<br><small>' + buildLeadUploadErrorText(response.errors) + '</small>';
 			}
 			showLeadUploadResult(message, true);
+			$("#leadUploadModal #submitLeadUploadBtn").hide();
 			if (isSuccess) {
 				loadLeadList();
 				$('#leadCsvFile').val('');

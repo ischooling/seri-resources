@@ -822,12 +822,3 @@ function chooseValueByElement(elementId, value){
 	}
 }
 
-var debouncing = function (mainFun, delay) {
-  var timer;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      mainFun(...args);
-    }, delay);
-  };
-};

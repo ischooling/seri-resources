@@ -20,6 +20,7 @@ function callForDashboardData(formId, actionUrl, replaceDiv, secondArgs) {
         		} else {
         			if(replaceDiv==undefined || replaceDiv==''){
         				$('#dashboardContentInHTML').html(htmlContent);
+        				triggerDashboardModuleInit(actionUrl);
         			}else{
         				if(actionUrl!=undefined && actionUrl!=''){
         					//moduleId=counselor & controllType=add & counselorId=0
@@ -283,6 +284,38 @@ function callForDashboardData(formId, actionUrl, replaceDiv, secondArgs) {
 	});
 }
 
+function triggerDashboardModuleInit(actionUrl){
+	try{
+		if(actionUrl=='manage-lead-content'){
+			if (typeof initManageLeadModule === 'function'){
+				setTimeout(function(){ initManageLeadModule(); }, 0);
+				return;
+			}
+
+			var basePath = (window.CONTEXT_PATH || '/');
+			if (basePath.charAt(basePath.length - 1) !== '/') {
+				basePath = basePath + '/';
+			}
+			var leadJsUrl = window.location.origin + basePath + 'static/js/custom/dashboard/lead/dashboardManageLead.js';
+			if (window.SCRIPT_VERSION) {
+				leadJsUrl = leadJsUrl + window.SCRIPT_VERSION;
+			}
+
+			$.getScript(leadJsUrl)
+				.done(function(){
+					if (typeof initManageLeadModule === 'function'){
+						setTimeout(function(){ initManageLeadModule(); }, 0);
+					}
+				})
+				.fail(function(){
+					console.log('Unable to load lead module JS from', leadJsUrl);
+				});
+		}
+	}catch(e){
+		console.log('triggerDashboardModuleInit error', e);
+	}
+}
+
 function callDashboardMenu(pageNo){
 	if(pageNo=='1'){
 		callForDashboardData('formIdIfAny','profile-view-content?userId=');
@@ -409,7 +442,7 @@ function showResetDelete(module, url, divId){
 //	var billingAddress = {};
 //	paymentRequestDTO['vendorId'] = "SERI";
 //	paymentRequestDTO['paymentMode'] = "UAT";
-//	paymentRequestDTO['returnUrl'] = "http://localhost:8123/seritest/dashboard/school";
+//	paymentRequestDTO['returnUrl'] = "http://localhost:8123/dashboard/school";
 //	paymentRequestDTO['paymentGateway'] = "PAYTAB";
 //	paymentRequestDTO['currencyISOCode'] = "USD";
 //	paymentRequestDTO['amount'] = "500";

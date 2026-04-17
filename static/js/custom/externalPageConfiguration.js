@@ -1,6 +1,6 @@
 BASE_URL = '';
 if (ENVIRONMENT == 'uat') {
-	BASE_URL = 'http://164.52.198.42:8080/istest/';
+	BASE_URL = 'http://164.52.203.90:8080/istest/';
 } else if (ENVIRONMENT == 'dev') {
 	BASE_URL = 'http://localhost:8080/istest/';
 } else if (ENVIRONMENT == 'dev-staging') {

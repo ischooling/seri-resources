@@ -50,6 +50,8 @@ function callDashboardPageSupAdmin(pageNo, replaceDiv, agrs, secondArgs){
 		callForDashboardData('formIdIfAny','manage-accounts-content'+agrs, replaceDiv);
 	}else if(pageNo=='8'){
 		callForDashboardData('formIdIfAny','manage-enquiry-content', replaceDiv);
+	}else if(pageNo=='8c'){
+		callForDashboardData('formIdIfAny','manage-lead-content', replaceDiv);
 	}else if(pageNo=='9a'){
 		callForDashboardData('formIdIfAny','manage-user-content', replaceDiv);
 	}else if(pageNo=='9b'){

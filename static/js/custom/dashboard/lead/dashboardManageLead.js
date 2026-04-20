@@ -775,7 +775,8 @@ function buildLeadDetailsHtml(status, name, email, contact, createdDate, applied
 	if (String(appliedUserRole || '').toLowerCase() === 'consultant' && organisationName) {
 		organisationHtml = '<div><span class="lead-details-label">Organisation:</span>' + safeLeadValue(organisationName) + '</div>';
 	}
-	return '<div><span class="lead-details-label">Status:</span>' + safeLeadValue(status) + '</div>'
+	var statusValue = (status === null || status === undefined || String(status).trim() === '') ? 'N/A' : status;
+	return '<div><span class="lead-details-label">Status:</span>' + safeLeadValue(statusValue) + '</div>'
 		+ '<div><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
 		+ '<div><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
 		+ '<div><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'

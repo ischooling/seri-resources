@@ -749,11 +749,13 @@ function openLeadEditModal(leadIndex) {
 	$('#leadEditContact').val(buildLeadEditContact(lead));
 	$('#leadEditAltEmail').val(lead.altEmail || '');
 	$('#leadEditAltPhone').val(lead.altPhone || '');
+	$('#leadEditOrganisationName').val(lead.organisationName || '');
 	$('#leadEditGrade').val(lead.grade || '');
 	$('#leadEditAppliedUserRole').val(lead.appliedUserRole || '');
 	$('#leadEditAssignToSchool').val(lead.assignToSchool || '');
 
 	loadLeadEditStateDropdown(getLeadDefaultValue('leadDefaultCountry', '101'), lead.stateId || '', lead.cityId || '', lead.assignToSchool || '');
+	loadLeadEditSchoolDropdown(lead.assignToSchool || '');
 
 	$('#leadEditModalLabel').text('Edit Lead - ' + (lead.fullName || 'Lead'));
 	$('#leadEditModal').modal('show');
@@ -781,6 +783,7 @@ function submitLeadEdit() {
 			contact: $.trim($('#leadEditContact').val()),
 			altEmail: $.trim($('#leadEditAltEmail').val()),
 			altPhone: $.trim($('#leadEditAltPhone').val()),
+			organisationName: $.trim($('#leadEditOrganisationName').val()),
 			state: parseLeadInteger($('#leadEditStateId').val()),
 			city: parseLeadInteger($('#leadEditCityId').val()),
 			grade: $.trim($('#leadEditGrade').val()),
@@ -815,6 +818,7 @@ function resetLeadEditModal() {
 	$('#leadEditContact').val('');
 	$('#leadEditAltEmail').val('');
 	$('#leadEditAltPhone').val('');
+	$('#leadEditOrganisationName').val('');
 	$('#leadEditStateId').html('<option value="">Select state</option>');
 	$('#leadEditCityId').html('<option value="">Select city</option>');
 	$('#leadEditGrade').val('');
@@ -979,8 +983,8 @@ function buildLeadLocation(state, city) {
 
 function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, createdDate, appliedUserRole, organisationName) {
 	var organisationHtml = '';
-	if (String(appliedUserRole || '').toLowerCase() === 'consultant' && organisationName) {
-		organisationHtml = '<div><span class="lead-details-label">Organisation:</span>' + safeLeadValue(organisationName) + '</div>';
+	if (organisationName) {
+		organisationHtml = '<div><span class="lead-details-label">Institute Name:</span>' + safeLeadValue(organisationName) + '</div>';
 	}
 	var statusValue = (status === null || status === undefined || String(status).trim() === '') ? 'N/A' : status;
 	return '<div><span class="lead-details-label">Status:</span>' + safeLeadValue(statusValue) + '</div>'

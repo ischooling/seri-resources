@@ -62,6 +62,7 @@ function initManageLeadModule() {
 	$table.data('leadInitDone', 'Y');
 	bindLeadFilterActions();
 	bindLeadRowActions();
+	bindLeadEditActions();
 	bindLeadUploadActions();
 	bindLeadFollowUpActions();
 	initializeLeadFollowUpStatusOptions();
@@ -150,11 +151,13 @@ function renderLeadRows(list) {
 		for (var i = 0; i < currentLeadRows.length; i++) {
 			var item = currentLeadRows[i] || {};
 			var contact = ((item.isd || '') + (item.phone ? (' ' + item.phone) : '')).trim();
-			var location = buildLeadLocation(item.stateName || item.state, item.cityName || item.city);
-			rows.push('<tr>'
+			var location = buildLeadLocation(item.stateName || item.stateId, item.cityName || item.cityId);
+			var rowClass = item.isOldLead ? 'old-lead-row' : 'new-lead-row';
+			rows.push('<tr class="' + rowClass + '">'
 				+ '<td>' + (i + 1) + '</td>'
-				+ '<td class="lead-details-cell">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.createdDate, item.appliedUserRole, item.organisationName) + '</td>'
+				+ '<td class="lead-details-cell">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.createdDate, item.appliedUserRole, item.organisationName) + '</td>'
 				+ '<td class="location-cell">' + safeLeadValue(location) + '</td>'
+				+ '<td>' + safeLeadValue(item.campaignName) + '</td>'
 				+ '<td>' + safeLeadValue(item.type) + '</td>'
 				+ '<td>' + safeLeadValue(item.grade) + '</td>'
 				+ '<td>' + safeLeadValue(item.appliedUserRole) + '</td>'
@@ -168,7 +171,7 @@ function renderLeadRows(list) {
 }
 
 function getLeadTableColumnCount() {
-	var columnCount = 6;
+	var columnCount = 7;
 	if (shouldShowAssignedSchoolColumn()) {
 		columnCount++;
 	}
@@ -352,9 +355,11 @@ function bindLeadFilterActions() {
 }
 
 function bindLeadRowActions() {
-	if (!isLeadAssignmentEnabled()) {
-		return;
-	}
+	$(document).off('click', '.openLeadEditAction').on('click', '.openLeadEditAction', function(e) {
+		e.preventDefault();
+		openLeadEditModal($(this).data('lead-index'));
+	});
+
 	$(document).off('click', '.openLeadAssignAction').on('click', '.openLeadAssignAction', function(e) {
 		e.preventDefault();
 		openLeadAssignmentModal($(this).data('lead-index'), 'assign');
@@ -383,6 +388,27 @@ function bindLeadRowActions() {
 			controlType: $('#leadActionType').val(),
 			assignToSchool: $('#leadActionSchoolId').val()
 		});
+	});
+}
+
+function bindLeadEditActions() {
+	$(document).off('click', '#submitLeadEditBtn').on('click', '#submitLeadEditBtn', function() {
+		submitLeadEdit();
+	});
+
+	$(document).off('change.leadEditSchool', '#leadEditForm #leadEditStateId').on('change.leadEditSchool', '#leadEditForm #leadEditStateId', function() {
+		loadLeadEditCityDropdown($(this).val(), '');
+		window.setTimeout(function() {
+			loadLeadEditSchoolDropdown('');
+		}, 500);
+	});
+
+	$(document).off('change.leadEditSchool', '#leadEditForm #leadEditCityId').on('change.leadEditSchool', '#leadEditForm #leadEditCityId', function() {
+		loadLeadEditSchoolDropdown('');
+	});
+
+	$(document).off('hidden.bs.modal', '#leadEditModal').on('hidden.bs.modal', '#leadEditModal', function() {
+		resetLeadEditModal();
 	});
 }
 
@@ -709,6 +735,187 @@ function openLeadAssignmentModal(leadIndex, controlType) {
 	$('#leadAssignmentModal').modal('show');
 }
 
+function openLeadEditModal(leadIndex) {
+	var lead = currentLeadRows[leadIndex] || {};
+	if (!lead.id) {
+		showLeadActionMessage(true, 'Lead id is missing.');
+		return;
+	}
+
+	resetLeadEditModal();
+	$('#leadEditLeadId').val(lead.id || '');
+	$('#leadEditName').val(lead.fullName || '');
+	$('#leadEditEmail').val(lead.email || '');
+	$('#leadEditContact').val(buildLeadEditContact(lead));
+	$('#leadEditAltEmail').val(lead.altEmail || '');
+	$('#leadEditAltPhone').val(lead.altPhone || '');
+	$('#leadEditGrade').val(lead.grade || '');
+	$('#leadEditAppliedUserRole').val(lead.appliedUserRole || '');
+	$('#leadEditAssignToSchool').val(lead.assignToSchool || '');
+
+	loadLeadEditStateDropdown(getLeadDefaultValue('leadDefaultCountry', '101'), lead.stateId || '', lead.cityId || '', lead.assignToSchool || '');
+
+	$('#leadEditModalLabel').text('Edit Lead - ' + (lead.fullName || 'Lead'));
+	$('#leadEditModal').modal('show');
+}
+
+function submitLeadEdit() {
+	var leadId = parseLeadInteger($('#leadEditLeadId').val());
+	if (!leadId) {
+		showLeadEditResult('Lead id is missing.', false);
+		return;
+	}
+
+	$('#submitLeadEditBtn').prop('disabled', true).text('Saving...');
+	showLeadEditResult('', true);
+
+	$.ajax({
+		type: 'POST',
+		url: '/v1/leads/edit',
+		global: false,
+		contentType: 'application/json',
+		data: JSON.stringify({
+			leadId: leadId,
+			fullName: $.trim($('#leadEditName').val()),
+			email: $.trim($('#leadEditEmail').val()),
+			contact: $.trim($('#leadEditContact').val()),
+			altEmail: $.trim($('#leadEditAltEmail').val()),
+			altPhone: $.trim($('#leadEditAltPhone').val()),
+			state: parseLeadInteger($('#leadEditStateId').val()),
+			city: parseLeadInteger($('#leadEditCityId').val()),
+			grade: $.trim($('#leadEditGrade').val()),
+			appliedUserRole: $.trim($('#leadEditAppliedUserRole').val()),
+			assignToSchool: parseLeadInteger($('#leadEditAssignToSchool').val())
+		}),
+		dataType: 'json',
+		cache: false,
+		timeout: 600000,
+		success: function(response) {
+			if (response && String(response.status).toLowerCase() === 'success') {
+				$('#leadEditModal').modal('hide');
+				loadLeadList();
+				showLeadActionMessage(false, response.message || 'Lead updated successfully.');
+				return;
+			}
+			showLeadEditResult((response && response.message) ? response.message : 'Unable to update lead.', false);
+		},
+		error: function() {
+			showLeadEditResult('Unable to update lead.', false);
+		},
+		complete: function() {
+			$('#submitLeadEditBtn').prop('disabled', false).text('Save');
+		}
+	});
+}
+
+function resetLeadEditModal() {
+	$('#leadEditLeadId').val('');
+	$('#leadEditName').val('');
+	$('#leadEditEmail').val('');
+	$('#leadEditContact').val('');
+	$('#leadEditAltEmail').val('');
+	$('#leadEditAltPhone').val('');
+	$('#leadEditStateId').html('<option value="">Select state</option>');
+	$('#leadEditCityId').html('<option value="">Select city</option>');
+	$('#leadEditGrade').val('');
+	$('#leadEditAppliedUserRole').val('');
+	$('#leadEditAssignToSchool').val('');
+	showLeadEditResult('', true);
+	$('#leadEditResult').hide();
+	$('#submitLeadEditBtn').prop('disabled', false).text('Save');
+}
+
+function loadLeadEditSchoolDropdown(selectedSchoolId) {
+	if (!isLeadAssignmentEnabled() || isSchoolLeadUser() || typeof getFilteredSchoolList !== 'function') {
+		return;
+	}
+
+	getFilteredSchoolList(
+		'leadEditForm',
+		'leadEditAssignToSchool',
+		$('#leadEditStateId').val(),
+		$('#leadEditCityId').val(),
+		selectedSchoolId || ''
+	);
+}
+
+function loadLeadEditStateDropdown(countryId, selectedStateId, selectedCityId, selectedSchoolId) {
+	resetDropdown($('#leadEditStateId'), 'Select state');
+	resetDropdown($('#leadEditCityId'), 'Select city');
+	if (!countryId || typeof getURLForCommon !== 'function' || typeof getRequestForMaster !== 'function') {
+		return;
+	}
+
+	$.ajax({
+		type: 'POST',
+		contentType: 'application/json',
+		url: getURLForCommon('masters'),
+		data: JSON.stringify(getRequestForMaster('leadEditForm', 'STATES-LIST', countryId)),
+		dataType: 'json',
+		cache: false,
+		timeout: 600000,
+		success: function(data) {
+			if (data && data.status !== '0' && data.status !== '2') {
+				buildDropdown((((data || {}).mastersData || {}).data || []), $('#leadEditStateId'), 'Select state');
+				if (selectedStateId) {
+					$('#leadEditStateId').val(String(selectedStateId));
+					loadLeadEditCityDropdown(selectedStateId, selectedCityId, selectedSchoolId);
+				}
+			}
+		}
+	});
+}
+
+function loadLeadEditCityDropdown(stateId, selectedCityId, selectedSchoolId) {
+	resetDropdown($('#leadEditCityId'), 'Select city');
+	if (!stateId || typeof getURLForCommon !== 'function' || typeof getRequestForMaster !== 'function') {
+		return;
+	}
+
+	$.ajax({
+		type: 'POST',
+		contentType: 'application/json',
+		url: getURLForCommon('masters'),
+		data: JSON.stringify(getRequestForMaster('leadEditForm', 'CITIES-LIST', stateId)),
+		dataType: 'json',
+		cache: false,
+		timeout: 600000,
+		success: function(data) {
+			if (data && data.status !== '0' && data.status !== '2') {
+				buildDropdown((((data || {}).mastersData || {}).data || []), $('#leadEditCityId'), 'Select city');
+				if (selectedCityId) {
+					$('#leadEditCityId').val(String(selectedCityId));
+				}
+				loadLeadEditSchoolDropdown(selectedSchoolId || '');
+			}
+		}
+	});
+}
+
+function showLeadEditResult(message, isSuccess) {
+	var $result = $('#leadEditResult');
+	if (!message) {
+		$result.removeClass('alert-success alert-danger').html('').hide();
+		return;
+	}
+	$result.removeClass('alert-success alert-danger')
+		.addClass(isSuccess ? 'alert-success' : 'alert-danger')
+		.html(message)
+		.show();
+}
+
+function buildLeadEditContact(lead) {
+	var phone = lead && lead.phone ? String(lead.phone) : '';
+	var isd = lead && lead.isd ? String(lead.isd) : '';
+	if (!phone) {
+		return '';
+	}
+	if (isd && phone.indexOf(isd.replace(/[^0-9]/g, '')) !== 0) {
+		return isd + ' ' + phone;
+	}
+	return phone;
+}
+
 function submitLeadAction(payload) {
 	if (!payload || !payload.leadId || !payload.controlType) {
 		showLeadActionMessage(true, 'Invalid lead action.');
@@ -770,7 +977,7 @@ function buildLeadLocation(state, city) {
 	return '-';
 }
 
-function buildLeadDetailsHtml(status, name, email, contact, createdDate, appliedUserRole, organisationName) {
+function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, createdDate, appliedUserRole, organisationName) {
 	var organisationHtml = '';
 	if (String(appliedUserRole || '').toLowerCase() === 'consultant' && organisationName) {
 		organisationHtml = '<div><span class="lead-details-label">Organisation:</span>' + safeLeadValue(organisationName) + '</div>';
@@ -780,6 +987,8 @@ function buildLeadDetailsHtml(status, name, email, contact, createdDate, applied
 		+ '<div><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
 		+ '<div><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
 		+ '<div><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'
+		+ '<div><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
+		+ '<div><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
 		+ organisationHtml
 		+ '<div><span class="lead-details-label">Created:</span>' + safeLeadValue(formatLeadDate(createdDate)) + '</div>';
 }
@@ -790,6 +999,9 @@ function buildLeadActionCell(index, item) {
 	var assignActionIcon = hasAssignedSchool ? 'fa-random' : 'fa-edit';
 	var assignActionLabel = hasAssignedSchool ? 'Move Lead' : 'Assign Lead';
 	var actionItems = '';
+
+	actionItems += '<li><a href="javascript:void(0);" class="openLeadEditAction" data-lead-index="' + index + '">'
+		+ '<i class="fa fa-pencil"></i> Edit</a></li>';
 
 	actionItems += '<li><a href="javascript:void(0);" class="openLeadFollowUpAction"'
 		+ ' data-lead-id="' + safeLeadAttribute(item.id) + '"'
@@ -833,7 +1045,11 @@ function formatLeadDate(epochMillis) {
 	if (!epochMillis) {
 		return '-';
 	}
-	var date = new Date(epochMillis);
+	var dateValue = epochMillis;
+	if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
+		dateValue = parseInt(dateValue, 10);
+	}
+	var date = new Date(dateValue);
 	if (isNaN(date.getTime())) {
 		return '-';
 	}

@@ -460,6 +460,7 @@ function submitLeadUploadFun(){
 		cache: false,
 		timeout: 600000,
 		success: function(response) {
+			response = JSON.parse(response);
 			var isSuccess = response && response.status === 'success';
 			var message = response && response.message ? response.message : 'Upload completed.';
 			if (response && response.errors && response.errors.length) {
@@ -470,6 +471,7 @@ function submitLeadUploadFun(){
 			if (isSuccess) {
 				loadLeadList();
 				$('#leadCsvFile').val('');
+				$('#leadUploadModal').modal('hide');
 			}
 		},
 		error: function() {

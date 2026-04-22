@@ -6,6 +6,7 @@ var currentLeadFilters = {
 	state: '',
 	city: '',
 	assignToSchool: '',
+	leadStatus: '',
 	appliedUserRole: '',
 	grade: '',
 	startDate: '',
@@ -21,7 +22,8 @@ var leadFollowUpStatuses = [
 	'Not Interested',
 	'Qualified',
 	'Converted',
-	'Duplicate lead'
+	'Duplicate lead',
+	'Ringing'
 ];
 
 function getLeadDefaultValue(id, fallbackValue) {
@@ -53,6 +55,7 @@ function initManageLeadModule() {
 		state: (isSchoolLeadUser() && isLeadAssignmentEnabled()) ? '' : getLeadDefaultValue('leadDefaultState', ''),
 		city: (isSchoolLeadUser() && isLeadAssignmentEnabled()) ? '' : getLeadDefaultValue('leadDefaultCity', ''),
 		assignToSchool: isLeadAssignmentEnabled() ? getLeadDefaultValue('leadDefaultAssignToSchool', '') : '',
+		leadStatus: '',
 		appliedUserRole: '',
 		grade: '',
 		startDate: '',
@@ -65,7 +68,7 @@ function initManageLeadModule() {
 	bindLeadEditActions();
 	bindLeadUploadActions();
 	bindLeadFollowUpActions();
-	initializeLeadFollowUpStatusOptions();
+	initializeLeadFollowUpStatusOptions('leadFollowUpStatus');
 	initializeLeadFilterForm();
 	loadLeadList();
 }
@@ -155,7 +158,7 @@ function renderLeadRows(list) {
 			var rowClass = item.isOldLead ? 'old-lead-row' : 'new-lead-row';
 			rows.push('<tr class="' + rowClass + '">'
 				+ '<td>' + (i + 1) + '</td>'
-				+ '<td class="lead-details-cell">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.createdDate, item.appliedUserRole, item.organisationName) + '</td>'
+				+ '<td class="lead-details-cell">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.createdDate, item.appliedUserRole, item.organisationName, item.latestFollowUpRemark, item.latestFollowUpDate, item.latestFollowUpRemarkBy) + '</td>'
 				+ '<td class="location-cell">' + safeLeadValue(location) + '</td>'
 				+ '<td>' + safeLeadValue(item.campaignName) + '</td>'
 				+ '<td>' + safeLeadValue(item.type) + '</td>'
@@ -212,6 +215,9 @@ function buildLeadFilterRequest(filters) {
 	if (filters && filters.assignToSchool) {
 		data.assignToSchool = parseLeadInteger(filters.assignToSchool);
 	}
+	if (filters && filters.leadStatus) {
+		data.leadStatus = $.trim(filters.leadStatus);
+	}
 	if (filters && filters.appliedUserRole) {
 		data.appliedUserRole = $.trim(filters.appliedUserRole);
 	}
@@ -241,6 +247,7 @@ function bindLeadFilterButton() {
 
 function bindLeadFilterActions() {
 	$(document).off('click', '#openLeadFilterBtn').on('click', '#openLeadFilterBtn', function() {
+		initializeLeadFollowUpStatusOptions('leadFollowUpStatusFilter');
 		$('#leadFilterName').val(currentLeadFilters.name || '');
 		$('#leadFilterEmail').val(currentLeadFilters.email || '');
 		$('#leadFilterContact').val(currentLeadFilters.contact || '');
@@ -267,6 +274,7 @@ function bindLeadFilterActions() {
 			$('#cityId').val(currentLeadFilters.city || getLeadDefaultValue('leadDefaultCity', ''));
 		}
 		$('#leadFilterAssignToSchool').val(isLeadAssignmentEnabled() ? (currentLeadFilters.assignToSchool || getLeadDefaultValue('leadDefaultAssignToSchool', '')) : '');
+		$('#leadFollowUpStatusFilter').val(currentLeadFilters.leadStatus || '');
 		$('#leadFilterAppliedUserRole').val(currentLeadFilters.appliedUserRole || '');
 		$('#leadFilterGrade').val(currentLeadFilters.grade || '');
 		$('#leadFilterStartDate').val(currentLeadFilters.startDate || '');
@@ -290,6 +298,7 @@ function bindLeadFilterActions() {
 			state: $('#stateId').val(),
 			city: $('#cityId').val(),
 			assignToSchool: $('#leadFilterAssignToSchool').val(),
+			leadStatus: $.trim($('#leadFollowUpStatusFilter').val()),
 			appliedUserRole: $.trim($('#leadFilterAppliedUserRole').val()),
 			grade: $.trim($('#leadFilterGrade').val()),
 			startDate: startDate,
@@ -332,6 +341,7 @@ function bindLeadFilterActions() {
 			$('#cityId').val(getLeadDefaultValue('leadDefaultCity', ''));
 		}
 		$('#leadFilterAssignToSchool').val(isLeadAssignmentEnabled() ? getLeadDefaultValue('leadDefaultAssignToSchool', '') : '');
+		$('#leadFollowUpStatusFilter').val('');
 		$('#leadFilterAppliedUserRole').val('');
 		$('#leadFilterGrade').val('');
 		$('#leadFilterStartDate').val('');
@@ -345,6 +355,7 @@ function bindLeadFilterActions() {
 			state: (isSchoolLeadUser() && isLeadAssignmentEnabled()) ? '' : getLeadDefaultValue('leadDefaultState', ''),
 			city: (isSchoolLeadUser() && isLeadAssignmentEnabled()) ? '' : getLeadDefaultValue('leadDefaultCity', ''),
 			assignToSchool: isLeadAssignmentEnabled() ? getLeadDefaultValue('leadDefaultAssignToSchool', '') : '',
+			leadStatus: '',
 			appliedUserRole: '',
 			grade: '',
 			startDate: '',
@@ -508,12 +519,12 @@ function bindLeadFollowUpActions() {
 	});
 }
 
-function initializeLeadFollowUpStatusOptions() {
-	var $status = $('#leadFollowUpStatus');
-	if ($status.length === 0 || $status.data('statusInitDone') === 'Y') {
+function initializeLeadFollowUpStatusOptions(elementId) {
+	var $status = $('#'+elementId);
+	if ($status.length === 0) {
 		return;
 	}
-	$status.data('statusInitDone', 'Y');
+	// $status.data('statusInitDone', 'Y');
 	$status.html('<option value="">Select Lead Status</option>');
 	for (var i = 0; i < leadFollowUpStatuses.length; i++) {
 		$status.append('<option value="' + safeLeadAttribute(leadFollowUpStatuses[i]) + '">'
@@ -983,19 +994,24 @@ function buildLeadLocation(state, city) {
 	return '-';
 }
 
-function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, createdDate, appliedUserRole, organisationName) {
+function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, createdDate, appliedUserRole, organisationName, latestFollowUpRemark, latestFollowUpDate, latestFollowUpRemarkBy) {
 	var organisationHtml = '';
 	if (organisationName) {
 		organisationHtml = '<div><span class="lead-details-label">Institute Name:</span>' + safeLeadValue(organisationName) + '</div>';
 	}
+	var latestFollowUpHtml = '<div><span class="lead-details-label">Remark:</span>'
+		+ safeLeadValue(latestFollowUpRemark || 'N/A') + '</div>'
+		+ '<div><span class="lead-details-label">Follow-up Date:</span>' + safeLeadValue(formatLeadDate(latestFollowUpDate)) + '</div>'
+		+ '<div><span class="lead-details-label">Remark By:</span>' + safeLeadValue(latestFollowUpRemarkBy || 'N/A') + '</div>';
 	var statusValue = (status === null || status === undefined || String(status).trim() === '') ? 'N/A' : status;
 	return '<div><span class="lead-details-label">Status:</span>' + safeLeadValue(statusValue) + '</div>'
 		+ '<div><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
 		+ '<div><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
 		+ '<div><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'
-		+ '<div><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
-		+ '<div><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
+		// + '<div><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
+		// + '<div><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
 		+ organisationHtml
+		+ latestFollowUpHtml
 		+ '<div><span class="lead-details-label">Created:</span>' + safeLeadValue(formatLeadDate(createdDate)) + '</div>';
 }
 

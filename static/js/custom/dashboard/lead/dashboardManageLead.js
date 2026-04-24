@@ -122,8 +122,6 @@ function loadLeadList(filters) {
 						processing: false,
 						serverSide: false,
 						autoWidth: false,
-						scrollY: '55vh',
-						scrollCollapse: true,
 						scrollX: true,
 						pageLength: 10,
 						language: {
@@ -1073,6 +1071,7 @@ function buildAssignedSchoolDetailsHtml(assignToSchoolName) {
 
 function buildLeadActionCell(index, item) {
 	var hasAssignedSchool = parseLeadInteger(item.assignToSchool);
+	var showDiscardAction = !isSchoolLeadUser() && isLeadAssignmentEnabled();
 	var assignActionClass = hasAssignedSchool ? 'openLeadMoveAction' : 'openLeadAssignAction';
 	var assignActionIcon = hasAssignedSchool ? 'fa-random' : 'fa-edit';
 	var assignActionLabel = hasAssignedSchool ? 'Move Lead' : 'Assign Lead';
@@ -1086,22 +1085,33 @@ function buildLeadActionCell(index, item) {
 		+ ' data-lead-name="' + safeLeadAttribute(item.fullName) + '">'
 		+ '<i class="fa fa-history"></i> Add follow-up</a></li>';
 
-	if (!isSchoolLeadUser() && isLeadAssignmentEnabled()) {
+	if (showDiscardAction) {
 		actionItems += '<li><a href="javascript:void(0);" class="' + assignActionClass + '" data-lead-index="' + index + '">'
 			+ '<i class="fa ' + assignActionIcon + '"></i> ' + assignActionLabel + '</a></li>'
-			+ '<li><a href="javascript:void(0);" class="discardLeadAction" data-lead-index="' + index + '">'
-			+ '<i class="fa fa-trash"></i> Discard</a></li>';
+			// + '<i class="fa fa-trash"></i> Discard</a></li>';
+	}
+
+	var quickDiscardButton = '';
+	if (showDiscardAction) {
+		quickDiscardButton = '<button class="btn lead-discard-btn discardLeadAction" type="button"'
+			+ ' data-lead-index="' + index + '"'
+			+ ' title="Discard lead" aria-label="Discard lead">'
+			+ '<i class="fa fa-trash"></i>'
+			+ '</button>';
 	}
 
 	return '<td class="lead-action-cell">'
+		+ '<div class="lead-action-inline">'
 		+ '<div class="dropdown lead-action-dropdown">'
-		+ '<button class="btn btn-primary dropdown-toggle lead-action-btn" type="button" data-toggle="dropdown"'
+		+ '<button class="btn btn-primary lead-action-btn" type="button" data-toggle="dropdown"'
 		+ ' data-lead-id="' + safeLeadAttribute(item.id) + '"'
 		+ ' data-lead-name="' + safeLeadAttribute(item.fullName) + '">'
 		+ '<span class="caret"></span></button>'
 		+ '<ul class="dropdown-menu">'
 		+ actionItems
 		+ '</ul></div>'
+		+ quickDiscardButton
+		+ '</div>'
 		+ '</td>';
 }
 

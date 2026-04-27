@@ -24,7 +24,8 @@ var leadFollowUpStatuses = [
 	'Qualified',
 	'Converted',
 	'Duplicate lead',
-	'Ringing'
+	'Ringing',
+	'Invalid'
 ];
 
 function getLeadDefaultValue(id, fallbackValue) {

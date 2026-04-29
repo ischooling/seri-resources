@@ -15,18 +15,7 @@ var currentLeadFilters = {
 var currentLeadRows = [];
 var pendingDiscardLeadIndex = null;
 
-var leadFollowUpStatuses = [
-	'Unassigned',
-	'Follow-up Pending',
-	'Contacted',
-	'Interested',
-	'Not Interested',
-	'Qualified',
-	'Converted',
-	'Duplicate lead',
-	'Ringing',
-	'Invalid'
-];
+var cachedLeadStatusList = null;
 
 function getLeadDefaultValue(id, fallbackValue) {
 	var value = $.trim($('#' + id).val() || '');
@@ -70,7 +59,7 @@ function initManageLeadModule() {
 	bindLeadEditActions();
 	bindLeadUploadActions();
 	bindLeadFollowUpActions();
-	initializeLeadFollowUpStatusOptions('leadFollowUpStatus');
+	initializeLeadStatusDropdown('leadFollowUpStatus');
 	initializeLeadFilterForm();
 	ensureFollowUpDetailsColumn();
 	loadLeadList();
@@ -114,6 +103,8 @@ function loadLeadList(filters) {
 		timeout: 600000,
 		success: function(response) {
 			var list = (response && response.data) ? response.data : [];
+			cachedLeadStatusList = response ? response.statusList : null;
+			refreshLeadStatusDropdowns();
 			renderLeadRows(list);
 
 			try {
@@ -171,6 +162,84 @@ function loadLeadList(filters) {
 	});
 }
 
+function normalizeLeadStatuses(statusList) {
+	var normalized = [];
+	if (!statusList || !Array.isArray(statusList) || statusList.length === 0) {
+		return normalized;
+	}
+	for (var i = 0; i < statusList.length; i++) {
+		var item = statusList[i];
+		if (item === null || typeof item === 'undefined') {
+			continue;
+		}
+
+		// Supports both: [{id,name}, ...] and ["Unassigned", ...] without hardcoding.
+		if (typeof item === 'object') {
+			var id = (typeof item.id !== 'undefined' && item.id !== null) ? item.id : (item.statusId || item.value);
+			var name = item.name || item.statusName || item.label || item.text;
+			if (typeof id === 'undefined' || id === null || !name) {
+				continue;
+			}
+			normalized.push({ value: String(id), text: String(name) });
+		} else {
+			normalized.push({ value: String(item), text: String(item) });
+		}
+	}
+
+	// Dedupe by value (first occurrence wins)
+	var seen = {};
+	var deduped = [];
+	for (var j = 0; j < normalized.length; j++) {
+		var entry = normalized[j];
+		if (!entry || !entry.value || seen[entry.value]) {
+			continue;
+		}
+		seen[entry.value] = true;
+		deduped.push(entry);
+	}
+	return deduped;
+}
+
+function setLeadStatusOptions(elementId, statusList) {
+	var el = document.getElementById(elementId);
+	if (!el) {
+		return;
+	}
+
+	// Clear existing/static options
+	while (el.options && el.options.length) {
+		el.remove(0);
+	}
+
+	// Default option
+	var defaultOpt = document.createElement('option');
+	defaultOpt.value = '';
+	defaultOpt.text = 'Select Status';
+	el.appendChild(defaultOpt);
+
+	var statuses = normalizeLeadStatuses(statusList);
+	for (var i = 0; i < statuses.length; i++) {
+		var status = statuses[i];
+		var opt = document.createElement('option');
+		opt.value = status.value;
+		opt.text = status.text;
+		el.appendChild(opt);
+	}
+}
+
+function refreshLeadStatusDropdowns() {
+	setLeadStatusOptions('leadFollowUpStatus', cachedLeadStatusList);
+	setLeadStatusOptions('leadFollowUpStatusFilter', cachedLeadStatusList);
+
+	// Optional: if a page uses the generic id mentioned in the requirement
+	setLeadStatusOptions('leadStatusDropdown', cachedLeadStatusList);
+}
+
+function initializeLeadStatusDropdown(elementId) {
+	// Keep UI stable before API returns (default option only).
+	setLeadStatusOptions(elementId, []);
+}
+
 function renderLeadRows(list) {
 	var $tbody = $('#manageLeadTableBody');
 	var rows = [];
@@ -187,12 +256,12 @@ function renderLeadRows(list) {
 			var rowClass = item.isOldLead ? 'old-lead-row' : 'new-lead-row';
 			rows.push('<tr class="' + rowClass + '">'
 				+ '<td class="col-serial">' + (i + 1) + '</td>'
-				+ '<td class="lead-details-cell col-lead-details">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.appliedUserRole, item.organisationName) + '</td>'
-				+ '<td class="lead-details-cell followup-details-cell col-followup">' + buildFollowUpDetailsHtml(item.latestFollowUpRemark, item.latestFollowUpDate, item.latestFollowUpRemarkBy, item.createdDate) + '</td>'
+				+ '<td class="lead-details-cell col-lead-details">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.appliedUserRole, item.organisationName, item.id) + '</td>'
+				+ '<td class="lead-details-cell followup-details-cell col-followup">' + buildFollowUpDetailsHtml(item.latestFollowUpRemark, item.latestFollowUpDate, item.latestFollowUpRemarkBy, item.createdDate, item.id) + '</td>'
 				+ '<td class="location-cell col-location">' + safeLeadValue(location) + '</td>'
-				+ '<td class="campaign-details-cell col-campaign">' + buildCampaignDetailsHtml(item.campaignName, item.type, item.grade) + '</td>'
-				+ '<td class="applied-role-details-cell col-applied-role">' + buildAppliedRoleDetailsHtml(item.appliedUserRole) + '</td>'
-				+ (shouldShowAssignedSchoolColumn() ? '<td class="school-cell col-school">' + buildAssignedSchoolDetailsHtml(item.assignToSchoolName) + '</td>' : '')
+				+ '<td class="campaign-details-cell col-campaign">' + buildCampaignDetailsHtml(item.campaignName, item.type, item.grade, item.id) + '</td>'
+				+ '<td class="applied-role-details-cell col-applied-role">' + buildAppliedRoleDetailsHtml(item.appliedUserRole, item.id) + '</td>'
+				+ (shouldShowAssignedSchoolColumn() ? '<td class="school-cell col-school">' + buildAssignedSchoolDetailsHtml(item.assignToSchoolName, item.id) + '</td>' : '')
 				+ (shouldShowLeadActionColumn() ? buildLeadActionCell(i, item).replace('lead-action-cell', 'lead-action-cell col-action') : '')
 				+ '</tr>');
 		}
@@ -272,7 +341,7 @@ function bindLeadFilterButton() {
 
 function bindLeadFilterActions() {
 	$(document).off('click', '#openLeadFilterBtn').on('click', '#openLeadFilterBtn', function() {
-		initializeLeadFollowUpStatusOptions('leadFollowUpStatusFilter');
+		setLeadStatusOptions('leadFollowUpStatusFilter', cachedLeadStatusList);
 		$('#leadFilterName').val(currentLeadFilters.name || '');
 		$('#leadFilterEmail').val(currentLeadFilters.email || '');
 		$('#leadFilterContact').val(currentLeadFilters.contact || '');
@@ -555,19 +624,6 @@ function bindLeadFollowUpActions() {
 	});
 }
 
-function initializeLeadFollowUpStatusOptions(elementId) {
-	var $status = $('#'+elementId);
-	if ($status.length === 0) {
-		return;
-	}
-	// $status.data('statusInitDone', 'Y');
-	$status.html('<option value="">Select Lead Status</option>');
-	for (var i = 0; i < leadFollowUpStatuses.length; i++) {
-		$status.append('<option value="' + safeLeadAttribute(leadFollowUpStatuses[i]) + '">'
-			+ safeLeadValue(leadFollowUpStatuses[i]) + '</option>');
-	}
-}
-
 function resetLeadFollowUpModal() {
 	$('#selectedLeadId').val('');
 	$('#leadFollowUpStatus').val('');
@@ -665,7 +721,16 @@ function submitLeadFollowUp() {
 			$('#leadFollowUpRemark').val('');
 			renderLeadFollowUpHistory(response.history || []);
 			showMessage(false, response.message || 'Lead follow-up saved successfully');
-			loadLeadList();
+			let followupDate = response.leadLog;
+			let remarkHtml = '<span class="lead-details-label">Remark:</span>'+remark
+			$("#remarkText"+leadId).html(remarkHtml);
+			let createdAtHtml = '<span class="lead-details-label">Follow-up Date:</span>'+followupDate.createdAt
+			$("#followupDate"+leadId).html(createdAtHtml);
+			let remarkBy = '<span class="lead-details-label">Remark By:</span>'+followupDate.remarkBy
+			$("#remarkBy"+leadId).html(remarkBy);
+			let statueHtml = '<span class="lead-details-label">Status:</span>'+leadStatus
+			$("#followupStatus"+leadId).html(statueHtml);
+			// loadLeadList();
 			$('#leadFollowUpModal').modal('hide');
 		},
 		error: function() {
@@ -820,13 +885,7 @@ function submitLeadEdit() {
 
 	$('#submitLeadEditBtn').prop('disabled', true).text('Saving...');
 	showLeadEditResult('', true);
-
-	$.ajax({
-		type: 'POST',
-		url: '/v1/leads/edit',
-		global: false,
-		contentType: 'application/json',
-		data: JSON.stringify({
+	let data = {
 			leadId: leadId,
 			fullName: $.trim($('#leadEditName').val()),
 			email: $.trim($('#leadEditEmail').val()),
@@ -839,14 +898,28 @@ function submitLeadEdit() {
 			grade: $.trim($('#leadEditGrade').val()),
 			appliedUserRole: $.trim($('#leadEditAppliedUserRole').val()),
 			assignToSchool: parseLeadInteger($('#leadEditAssignToSchool').val())
-		}),
+		}
+	$.ajax({
+		type: 'POST',
+		url: '/v1/leads/edit',
+		global: false,
+		contentType: 'application/json',
+		data: JSON.stringify(data),
 		dataType: 'json',
 		cache: false,
 		timeout: 600000,
 		success: function(response) {
 			if (response && String(response.status).toLowerCase() === 'success') {
 				$('#leadEditModal').modal('hide');
-				loadLeadList();
+				let name = '<span class="lead-details-label">Name:</span>'+data.fullName;
+				let email = '<span class="lead-details-label">Email:</span>'+data.email;
+				let contact = '<span class="lead-details-label">Contact:</span>'+data.contact;
+				let grade = '<span class="lead-details-label">Grade:</span>'+data.grade;
+				$("#name"+leadId).html(name);
+				$("#email"+leadId).html(email);
+				$("#contact"+leadId).html(contact);
+				$("#grade"+leadId).html(grade);
+				// loadLeadList();
 				showLeadActionMessage(false, response.message || 'Lead updated successfully.');
 				return;
 			}
@@ -1031,43 +1104,43 @@ function buildLeadLocation(state, city) {
 	return '-';
 }
 
-function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, appliedUserRole, organisationName) {
+function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, appliedUserRole, organisationName, leadId) {
 	var organisationHtml = '';
 	if (organisationName) {
-		organisationHtml = '<div><span class="lead-details-label">Institute Name:</span>' + safeLeadValue(organisationName) + '</div>';
+		organisationHtml = '<div id="instituteName'+leadId+'"><span class="lead-details-label">Institute Name:</span>' + safeLeadValue(organisationName) + '</div>';
 	}
 	var statusValue = (status === null || status === undefined || String(status).trim() === '') ? 'N/A' : status;
-	return '<div><span class="lead-details-label">Status:</span>' + safeLeadValue(statusValue) + '</div>'
-		+ '<div><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
-		+ '<div><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
-		+ '<div><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'
+	return '<div id="followupStatus'+leadId+'"><span class="lead-details-label">Status:</span>' + safeLeadValue(statusValue) + '</div>'
+		+ '<div id="name'+leadId+'" ><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
+		+ '<div id="email'+leadId+'"><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
+		+ '<div id="contact'+leadId+'"><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'
 		// + '<div><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
 		// + '<div><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
 		+ organisationHtml;
 }
 
-function buildFollowUpDetailsHtml(latestFollowUpRemark, latestFollowUpDate, latestFollowUpRemarkBy, createdDate) {
-	var followUpDetailsHtml = '<div><span class="lead-details-label">Remark:</span>'
+function buildFollowUpDetailsHtml(latestFollowUpRemark, latestFollowUpDate, latestFollowUpRemarkBy, createdDate, leadId) {
+	var followUpDetailsHtml = '<div id="remarkText'+leadId+'"><span class="lead-details-label">Remark:</span>'
 		+ safeLeadValue(latestFollowUpRemark || 'N/A') + '</div>'
-		+ '<div><span class="lead-details-label">Follow-up Date:</span>'
+		+ '<div id="followupDate'+leadId+'"><span class="lead-details-label">Follow-up Date:</span>'
 		+ safeLeadValue(formatLeadDate(latestFollowUpDate)) + '</div>'
-		+ '<div><span class="lead-details-label">Remark By:</span>'
+		+ '<div id = "remarkBy'+leadId+'"><span class="lead-details-label">Remark By:</span>'
 		+ safeLeadValue(latestFollowUpRemarkBy || 'N/A') + '</div>'
 	return followUpDetailsHtml;
 }
 
-function buildCampaignDetailsHtml(campaignName, type, grade) {
-	return '<div><span class="lead-details-label">Campaign:</span>' + safeLeadValue(campaignName) + '</div>'
-		+ '<div><span class="lead-details-label">Type:</span>' + safeLeadValue(type) + '</div>'
-		+ '<div><span class="lead-details-label">Grade:</span>' + safeLeadValue(grade) + '</div>';
+function buildCampaignDetailsHtml(campaignName, type, grade, leadId) {
+	return '<div id="compaing'+leadId+'"><span class="lead-details-label">Campaign:</span>' + safeLeadValue(campaignName) + '</div>'
+		+ '<div id="type'+leadId+'"><span class="lead-details-label">Type:</span>' + safeLeadValue(type) + '</div>'
+		+ '<div id="grade'+leadId+'"><span class="lead-details-label">Grade:</span>' + safeLeadValue(grade) + '</div>';
 }
 
-function buildAppliedRoleDetailsHtml(appliedUserRole) {
-	return '<div>' + safeLeadValue(appliedUserRole) + '</div>';
+function buildAppliedRoleDetailsHtml(appliedUserRole,leadId) {
+	return '<div id="appliedRole'+leadId+'">' + safeLeadValue(appliedUserRole) + '</div>';
 }
 
-function buildAssignedSchoolDetailsHtml(assignToSchoolName) {
-	return '<div>' + safeLeadValue(assignToSchoolName) + '</div>';
+function buildAssignedSchoolDetailsHtml(assignToSchoolName, leadId) {
+	return '<div id="schoolName'+leadId+'">' + safeLeadValue(assignToSchoolName) + '</div>';
 }
 
 function buildLeadActionCell(index, item) {

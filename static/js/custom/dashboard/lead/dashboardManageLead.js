@@ -258,7 +258,7 @@ function renderLeadRows(list) {
 				+ '<td class="col-serial">' + (i + 1) + '</td>'
 				+ '<td class="lead-details-cell col-lead-details">' + buildLeadDetailsHtml(item.status, item.fullName, item.email, contact, item.altEmail, item.altPhone, item.appliedUserRole, item.organisationName, item.id) + '</td>'
 				+ '<td class="lead-details-cell followup-details-cell col-followup">' + buildFollowUpDetailsHtml(item.latestFollowUpRemark, item.latestFollowUpDate, item.latestFollowUpRemarkBy, item.createdDate, item.id) + '</td>'
-				+ '<td class="location-cell col-location">' + safeLeadValue(location) + '</td>'
+				+ '<td class="location-cell col-location" id="location'+item.id+'">' + safeLeadValue(location) + '</td>'
 				+ '<td class="campaign-details-cell col-campaign">' + buildCampaignDetailsHtml(item.campaignName, item.type, item.grade, item.id) + '</td>'
 				+ '<td class="applied-role-details-cell col-applied-role">' + buildAppliedRoleDetailsHtml(item.appliedUserRole, item.id) + '</td>'
 				+ (shouldShowAssignedSchoolColumn() ? '<td class="school-cell col-school">' + buildAssignedSchoolDetailsHtml(item.assignToSchoolName, item.id) + '</td>' : '')
@@ -867,7 +867,7 @@ function openLeadEditModal(leadIndex) {
 	$('#leadEditOrganisationName').val(lead.organisationName || '');
 	$('#leadEditGrade').val(lead.grade || '');
 	$('#leadEditAppliedUserRole').val(lead.appliedUserRole || '');
-	$('#leadEditAssignToSchool').val(lead.assignToSchool || '');
+	// $('#leadEditAssignToSchool').val(lead.assignToSchool || '');
 
 	loadLeadEditStateDropdown(getLeadDefaultValue('leadDefaultCountry', '101'), lead.stateId || '', lead.cityId || '', lead.assignToSchool || '');
 	loadLeadEditSchoolDropdown(lead.assignToSchool || '');
@@ -897,7 +897,7 @@ function submitLeadEdit() {
 			city: parseLeadInteger($('#leadEditCityId').val()),
 			grade: $.trim($('#leadEditGrade').val()),
 			appliedUserRole: $.trim($('#leadEditAppliedUserRole').val()),
-			assignToSchool: parseLeadInteger($('#leadEditAssignToSchool').val())
+			// assignToSchool: parseLeadInteger($('#leadEditAssignToSchool').val())
 		}
 	$.ajax({
 		type: 'POST',
@@ -913,13 +913,42 @@ function submitLeadEdit() {
 				$('#leadEditModal').modal('hide');
 				let name = '<span class="lead-details-label">Name:</span>'+data.fullName;
 				let email = '<span class="lead-details-label">Email:</span>'+data.email;
+				let altEmail = '<span class="lead-details-label">Alternate Email:</span>'+data.altEmail;
 				let contact = '<span class="lead-details-label">Contact:</span>'+data.contact;
 				let grade = '<span class="lead-details-label">Grade:</span>'+data.grade;
+				let altPhone = '<span class="lead-details-label">Alternate Phone:</span>'+data.altPhone;
+				let cityName = $("#leadEditCityId option:selected").text()
+				let stateName = $("#leadEditStateId option:selected").text()
+				var location = buildLeadLocation(stateName, cityName);
 				$("#name"+leadId).html(name);
 				$("#email"+leadId).html(email);
+				$("#altEmail"+leadId).html(altEmail);
 				$("#contact"+leadId).html(contact);
+				$("#altContact"+leadId).html(altPhone);
+				$("#appliedRole"+leadId).html(data.appliedUserRole);
+				// $("#schoolName"+leadId).html($("#leadEditAssignToSchool option:selected").text());
 				$("#grade"+leadId).html(grade);
+				$("#location"+leadId).html(safeLeadValue(location));
 				// loadLeadList();
+				let index = $("#editLead"+leadId+" a").attr("data-lead-index");
+				currentLeadRows[index].fullName = data.fullName;
+				currentLeadRows[index].altEmail = data.altEmail;
+				currentLeadRows[index].altPhone = data.altPhone;
+				currentLeadRows[index].appliedUserRole = data.appliedUserRole;
+				// currentLeadRows[index].assignToSchoolName = $("#leadEditAssignToSchool option:selected").text();
+				currentLeadRows[index].assignToSchool = data.organisationName;
+				currentLeadRows[index].cityId = data.city;
+				currentLeadRows[index].cityName = cityName;
+				currentLeadRows[index].email = data.email;
+				currentLeadRows[index].grade = data.grade;
+				let phoneNo = normalizePhoneNumber(contact);
+				let isd = extractIsdCode(contact, phoneNo);
+				currentLeadRows[index].isd = isd;
+				currentLeadRows[index].phone = phoneNo;
+				currentLeadRows[index].stateId = data.state;
+				currentLeadRows[index].stateName = stateName;
+				
+
 				showLeadActionMessage(false, response.message || 'Lead updated successfully.');
 				return;
 			}
@@ -1072,7 +1101,10 @@ function submitLeadAction(payload) {
 		success: function(response) {
 			if (response && String(response.status).toLowerCase() === 'success') {
 				$('#leadAssignmentModal').modal('hide');
-				loadLeadList();
+				let assignSchoolName = $("#leadActionSchoolId option:selected").text();
+				$("#schoolName"+payload.leadId).html(assignSchoolName);
+				let index = $("#leadassign"+payload.leadId+" a").attr("data-lead-index");
+				$("#leadassign"+payload.leadId).html('<a href="javascript:void(0);" class="openLeadMoveAction" data-lead-index="' + index + '"><i class="fa fa-random"></i> Move Lead</a>')
 				showLeadActionMessage(false, response.message || 'Lead updated successfully.');
 				return;
 			}
@@ -1114,8 +1146,8 @@ function buildLeadDetailsHtml(status, name, email, contact, altEmail, altPhone, 
 		+ '<div id="name'+leadId+'" ><span class="lead-details-label">Name:</span>' + safeLeadValue(name) + '</div>'
 		+ '<div id="email'+leadId+'"><span class="lead-details-label">Email:</span>' + safeLeadValue(email) + '</div>'
 		+ '<div id="contact'+leadId+'"><span class="lead-details-label">Contact:</span>' + safeLeadValue(contact) + '</div>'
-		// + '<div><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
-		// + '<div><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
+		+ '<div id="altEmail'+leadId+'"><span class="lead-details-label">Alternate Email:</span>' + safeLeadValue(altEmail || 'N/A') + '</div>'
+		+ '<div id="altContact'+leadId+'"><span class="lead-details-label">Alternate Phone:</span>' + safeLeadValue(altPhone || 'N/A') + '</div>'
 		+ organisationHtml;
 }
 
@@ -1151,7 +1183,7 @@ function buildLeadActionCell(index, item) {
 	var assignActionLabel = hasAssignedSchool ? 'Move Lead' : 'Assign Lead';
 	var actionItems = '';
 
-	actionItems += '<li><a href="javascript:void(0);" class="openLeadEditAction" data-lead-index="' + index + '">'
+	actionItems += '<li id="editLead'+item.id+'"><a href="javascript:void(0);" class="openLeadEditAction" data-lead-index="' + index + '">'
 		+ '<i class="fa fa-pencil"></i> Edit</a></li>';
 
 	actionItems += '<li><a href="javascript:void(0);" class="openLeadFollowUpAction"'
@@ -1160,7 +1192,7 @@ function buildLeadActionCell(index, item) {
 		+ '<i class="fa fa-history"></i> Add follow-up</a></li>';
 
 	if (showDiscardAction) {
-		actionItems += '<li><a href="javascript:void(0);" class="' + assignActionClass + '" data-lead-index="' + index + '">'
+		actionItems += '<li id="leadassign'+item.id+'"><a href="javascript:void(0);" class="' + assignActionClass + '" data-lead-index="' + index + '">'
 			+ '<i class="fa ' + assignActionIcon + '"></i> ' + assignActionLabel + '</a></li>'
 			// + '<i class="fa fa-trash"></i> Discard</a></li>';
 	}
@@ -1253,4 +1285,36 @@ function safeLeadAttribute(value) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/'/g, '&#39;');
+}
+
+function normalizePhoneNumber(value) {
+    if (!value || value.toString().trim() === "") {
+        return null;
+    }
+    const digits = value.toString().replace(/[^0-9]/g, "");
+
+    if (!digits || digits.trim() === "") {
+        return null;
+    }
+    if (digits.length > 10) {
+        return digits.slice(-10);
+    }
+    return digits;
+}
+
+function extractIsdCode(rawPhone, normalizedPhone) {
+    const digits = rawPhone ? rawPhone.toString().replace(/[^0-9]/g, "") : "";
+    if (!digits || digits.trim() === "") {
+        return null;
+    }
+    if (normalizedPhone && digits.length > normalizedPhone.length) {
+        const prefix = digits.substring(0, digits.length - normalizedPhone.length);
+        if (prefix && prefix.trim() !== "") {
+            return "+" + prefix;
+        }
+    }
+    if (normalizedPhone && normalizedPhone.length === 10) {
+        return "+91";
+    }
+    return null;
 }

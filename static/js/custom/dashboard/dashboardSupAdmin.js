@@ -131,6 +131,8 @@ function callDashboardPageSupAdmin(pageNo, replaceDiv, agrs, secondArgs){
 		pdfDownload(replaceDiv);
 	}else if(pageNo=='information'){
 	    callForDashboardData('formIdIfAny','manage-information-content', replaceDiv);
+	}else if(pageNo=='leadreport'){
+	    callForDashboardData('formIdIfAny','manage-lead-report-content', replaceDiv);
 	}else if(pageNo=='stufee'){
 	    callForDashboardData('formIdIfAny','manage-student-fee', replaceDiv);
 	}else if(pageNo=='examguide'){
@@ -189,5 +191,4 @@ function callSupAdminInneraction(actionType, arg0, replaceDiv, secondArgs){
 		callForDashboardData('formIdIfAny','readiness-remark-content'+arg0, replaceDiv, secondArgs);
 	}
 }
-
 

@@ -14,6 +14,8 @@ var currentLeadFilters = {
 };
 var currentLeadRows = [];
 var pendingDiscardLeadIndex = null;
+var pendingDiscardLeadId = null;
+var pendingDiscardLeadRow = null;
 
 var cachedLeadStatusList = null;
 
@@ -478,6 +480,10 @@ function bindLeadRowActions() {
 	$(document).off('click', '.discardLeadAction').on('click', '.discardLeadAction', function(e) {
 		e.preventDefault();
 		pendingDiscardLeadIndex = $(this).data('lead-index');
+		pendingDiscardLeadId = (currentLeadRows[pendingDiscardLeadIndex] && currentLeadRows[pendingDiscardLeadIndex].id)
+			? currentLeadRows[pendingDiscardLeadIndex].id
+			: null;
+		pendingDiscardLeadRow = $(this).closest('tr');
 		$('#leadDiscardWarningModal').modal('show');
 	});
 
@@ -487,15 +493,21 @@ function bindLeadRowActions() {
 			$('#leadDiscardWarningModal').modal('hide');
 			return;
 		}
+		var leadId = pendingDiscardLeadId || (currentLeadRows[leadIndex] ? currentLeadRows[leadIndex].id : null);
 		submitLeadAction({
-			leadId: currentLeadRows[leadIndex] ? currentLeadRows[leadIndex].id : null,
-			controlType: 'discard'
+			leadId: leadId,
+			controlType: 'discard',
+			onSuccess: function() {
+				hideDiscardedLeadRow(leadId, pendingDiscardLeadRow);
+			}
 		});
 		$('#leadDiscardWarningModal').modal('hide');
 	});
 
 	$(document).off('hidden.bs.modal', '#leadDiscardWarningModal').on('hidden.bs.modal', '#leadDiscardWarningModal', function() {
 		pendingDiscardLeadIndex = null;
+		pendingDiscardLeadId = null;
+		pendingDiscardLeadRow = null;
 	});
 
 	$(document).off('click', '#submitLeadActionBtn').on('click', '#submitLeadActionBtn', function() {
@@ -1101,11 +1113,20 @@ function submitLeadAction(payload) {
 		success: function(response) {
 			if (response && String(response.status).toLowerCase() === 'success') {
 				$('#leadAssignmentModal').modal('hide');
-				let assignSchoolName = $("#leadActionSchoolId option:selected").text();
-				$("#schoolName"+payload.leadId).html(assignSchoolName);
-				let index = $("#leadassign"+payload.leadId+" a").attr("data-lead-index");
-				$("#leadassign"+payload.leadId).html('<a href="javascript:void(0);" class="openLeadMoveAction" data-lead-index="' + index + '"><i class="fa fa-random"></i> Move Lead</a>')
+				if (payload.controlType === 'assign' || payload.controlType === 'move') {
+					let assignSchoolName = $("#leadActionSchoolId option:selected").text();
+					$("#schoolName" + payload.leadId).html(assignSchoolName);
+					let index = $("#leadassign" + payload.leadId + " a").attr("data-lead-index");
+					$("#leadassign" + payload.leadId).html('<a href="javascript:void(0);" class="openLeadMoveAction" data-lead-index="' + index + '"><i class="fa fa-random"></i> Move Lead</a>');
+				}
 				showLeadActionMessage(false, response.message || 'Lead updated successfully.');
+				if (payload.onSuccess && typeof payload.onSuccess === 'function') {
+					try {
+						payload.onSuccess(response);
+					} catch (e) {
+						console.log('Lead action onSuccess error', e);
+					}
+				}
 				return;
 			}
 			showLeadActionMessage(true, (response && response.message) ? response.message : 'Unable to update lead.');
@@ -1113,6 +1134,36 @@ function submitLeadAction(payload) {
 		error: function() {
 			showLeadActionMessage(true, 'Unable to update lead.');
 		}
+	});
+}
+
+function hideDiscardedLeadRow(leadId, $row) {
+	if (!$row || !$row.length) {
+		$row = $('#manageLeadTableBody').find('tr').filter(function() {
+			var $tr = $(this);
+			return $tr.find('#editLead' + leadId).length > 0 || $tr.find('#leadassign' + leadId).length > 0;
+		}).first();
+	}
+
+	// Keep JS state consistent
+	if (leadId && currentLeadRows && currentLeadRows.length) {
+		currentLeadRows = $.grep(currentLeadRows, function(item) {
+			return !(item && String(item.id) === String(leadId));
+		});
+	}
+
+	try {
+		if ($.fn && $.fn.DataTable && $.fn.DataTable.isDataTable('#manageLeadTable')) {
+			var api = $('#manageLeadTable').DataTable();
+			api.row($row).remove().draw(false);
+			return;
+		}
+	} catch (e) {
+		// fallback below
+	}
+
+	$row.fadeOut(200, function() {
+		$(this).remove();
 	});
 }
 

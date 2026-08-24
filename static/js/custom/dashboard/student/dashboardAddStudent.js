@@ -64,9 +64,9 @@ function emptyPreviousQualification(){
 	$('#fileuploadPreviousMarks22').prev('span').html('');
 }
 function selectSubject(src, flag, MIN_SUBJECT, MAX_SUBJECT){
-	if(flag){
+	if(flag || $('#overrideSubjectRules').is(':checked')){
 		if (!$(src).hasClass("greenDiv")) {
-			if(parseInt($("#countSubject").text())>=parseInt(MAX_SUBJECT)){
+			if(!$('#overrideSubjectRules').is(':checked') && parseInt($("#countSubject").text())>=parseInt(MAX_SUBJECT)){
 				showMessage(true, 'You can\'t select more than '+MAX_SUBJECT+' subject.');
 				return false
 			}
@@ -77,6 +77,13 @@ function selectSubject(src, flag, MIN_SUBJECT, MAX_SUBJECT){
 		calculateCurrentSubjects();
 		callPreviousSubjectList();
 	}
+}
+
+function syncMandatorySubjectsWithMode() {
+	if($('#overrideSubjectRules').is(':checked')){
+		return;
+	}
+	$("#mandatorySubjects tbody tr").addClass("greenDiv");
 }
 
 function setPreviousMarks(){
@@ -169,6 +176,13 @@ function setPreviousSubjects(){
 	}else{
 		needToCallPreviousSubject=false;
 	}
+	$("#mandatorySubjects tbody tr").each(function() {
+		if($('#overrideSubjectRules').is(':checked')){
+			$(this).attr('class', PRESERVE_CURRENT_SUBJECTSDB.includes(this.id) ? 'block greenDiv' : 'block');
+		}else{
+			$(this).attr('class','block greenDiv');
+		}
+	});
 	$("#optionalSubjects tbody tr").each(function() {
 		if (PRESERVE_CURRENT_SUBJECTSDB.includes(this.id)) {
 			$(this).attr('class','block greenDiv');
@@ -320,7 +334,7 @@ function calculateCurrentSubjects(standardId) {
 			selSubjectName = selSubjectName + "," + $(this).find("strong").text().split(' - ')[1];
 		}
 	});
-	$("#countSubject").text(selSubjectd.substr(1).split(',').length);
+	$("#countSubject").text(selSubjectd === "" ? 0 : selSubjectd.substr(1).split(',').length);
 	PRESERVE_CURRENT_SUBJECTS=selSubjectd.substr(1);
 	PRESERVE_CURRENT_SUBJECTS_NAME=selSubjectName.substr(1);
 	if(PRESERVE_CURRENT_SUBJECTSDB!='' && PRESERVE_CURRENT_SUBJECTSDB!=PRESERVE_CURRENT_SUBJECTS){
@@ -332,11 +346,20 @@ function showCurrentSubject(flag, sessionStartDate){
 	if(flag){
 		if($('#standardId').val()>0){
 			$('#currentSubjectModal').modal({backdrop: 'static', keyboard: false});
+			if($('#overrideSubjectRules').is(':checked')){
+				$("#mandatorySubjects tbody tr").removeClass("greenDiv");
+				calculateCurrentSubjects();
+			}
 		}else{
 			showMessage(true, 'Please select standard');
 		}
 	}
 }
+
+$(document).on('change', '#overrideSubjectRules', function(){
+	syncMandatorySubjectsWithMode();
+	calculateCurrentSubjects();
+});
 function showPreviousQualification(flag){
 	if(flag){
 		if($('#standardId').val()>0){
@@ -895,6 +918,8 @@ function getRequestForAddStudent(formId,moduleId){
 		
 		addStudentListDTO['subjectId'] = calculateCurrentSubjects();
 		
+		addStudentListDTO['isFreeSubjectSelect'] = $('#overrideSubjectRules').is(':checked') ? 1 : 0;
+		
 		var checkVerify = "0";
 		if($("#chkVerified").is(":checked")){
 			checkVerify = "1";
@@ -1286,10 +1311,18 @@ function validateRequestForAddStudent(formId,moduleId, MIN_SUBJECT, MAX_SUBJECT)
 			return false
 		}
 		if(parseInt($("#countSubject").text())<parseInt(MIN_SUBJECT)){
-			showMessage(true, 'Please select at least '+MIN_SUBJECT+' subject.');
-			return false
+			if(!$('#overrideSubjectRules').is(':checked')){
+				showMessage(true, 'Please select at least '+MIN_SUBJECT+' subject.');
+				return false
+			}
 		}else if(parseInt($("#countSubject").text())>parseInt(MAX_SUBJECT)){
-			showMessage(true, 'You can select maximum '+MAX_SUBJECT+' subject.');
+			if(!$('#overrideSubjectRules').is(':checked')){
+				showMessage(true, 'You can select maximum '+MAX_SUBJECT+' subject.');
+				return false
+			}
+		}
+		if($('#overrideSubjectRules').is(':checked') && parseInt($("#countSubject").text()) < 1){
+			showMessage(true, 'Please select at least 1 subject.');
 			return false
 		}
 		if ($("#previousYearOfPassing1").val()==null || $("#previousYearOfPassing1").val()==0 ) {
@@ -2202,11 +2235,13 @@ function callSubjectsWithComp(formId, value, sessionStartDate, elementId) {
 			} else {
 				$('#mandatorySubjects tbody').html('');
 				$.each(data['mastersData']['data'], function(k, v) {
-					var tr = '<tr onclick="selectSubject(this, false, '+v.min+', '+v.max+' );" id="'+v.key+'" class="block greenDiv"><td><strong>'+v.extra+' - '+v.value+'</strong>'
+					var trClass = $('#overrideSubjectRules').is(':checked') ? 'block' : 'block greenDiv';
+					var tr = '<tr onclick="selectSubject(this, false, '+v.min+', '+v.max+' );" id="'+v.key+'" class="'+trClass+'"><td><strong>'+v.extra+' - '+v.value+'</strong>'
 						+'</td><td><i class="fa fa-check"></i></td></tr>';
 					$('#mandatorySubjects tbody').append(tr);
 				});
-				$("#"+formId+" #countSubject").text(data['mastersData']['data'].length);
+				syncMandatorySubjectsWithMode();
+				calculateCurrentSubjects();
 			}
 			$("#subjectCompId").prop("disabled", false);
 			

@@ -7,7 +7,32 @@ function validateRequestForAllExaminationDetails(formId){
 		showMessage(true, 'Session  is Mandatory');
 		return false
 	}
+	if ($("#batchId").val()==null || $("#batchId option:selected").val()==0) {
+		showMessage(true, 'Batch is Mandatory');
+		return false
+	}
 	return true;
+}
+
+function getBatchListForSession(){
+	$("#batchId").html('<option value="0">Please Select Batch</option>');
+	if($('#session').val()==null || $('#session option:selected').val()==0){
+		return false;
+	}
+	$.ajax({
+		type : "POST",
+		url : getURLForHTML('dashboard','manage-exams-batch-list'),
+		data : "sessionId="+$('#session').val(),
+		dataType : 'json',
+		cache : false,
+		success : function(batchList) {
+			$("#batchId").html('<option value="0">Please Select Batch</option>');
+			$.each(batchList, function(index, batch) {
+				var selectedAttr = batch.active=='Y' ? ' selected' : '';
+				$("#batchId").append('<option value="'+batch.id+'"'+selectedAttr+'>'+batch.name+'</option>');
+			});
+		}
+	});
 }
 
 function getAllExaminationDetails(formId){
@@ -18,12 +43,13 @@ function getAllExaminationDetails(formId){
 	var sessionValue = $('#session option:selected').attr('sessionValue').split("-");
 	var sessionYear = sessionValue[0];
 	var sessionMonth = sessionValue[1];
-	
+
 	//$("#callExaminationDetails").prop("disabled", true);
 	var postData="standardId="+$('#standardId').val()
 			+"&countryId="+$('#countryId').val()
 			+"&sessionYear="+sessionYear
-			+"&sessionMonth="+sessionMonth;
+			+"&sessionMonth="+sessionMonth
+			+"&batchId="+$('#batchId').val();
 	$.ajax({
 		type : "POST",
 		url : getURLForHTML('dashboard','manage-exams-subject-list'),
@@ -155,6 +181,7 @@ function getRequestForAddExams(src, examsId, standardId, subjectID, practicleReq
 	manageExamsDTOList['subjectID'] = subjectID;
 	manageExamsDTOList['practicleReq'] = practicleReq;
 	manageExamsDTOList['countryId'] = $("#countryId").val();
+	manageExamsDTOList['batchId'] = $("#batchId").val();
 	manageExamsDTOList['subjectName'] = $(".subjectName").val();
 	manageExamsDTOList['compulsary'] = $("#compulsaryStatus").val();
 	manageExamsDTOList['dateStatus'] = dateStatus;

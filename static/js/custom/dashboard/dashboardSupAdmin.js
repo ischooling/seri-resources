@@ -36,6 +36,8 @@ function callDashboardPageSupAdmin(pageNo, replaceDiv, agrs, secondArgs){
 		callForDashboardData('formIdIfAny','manage-exams-content'+agrs, replaceDiv);
 	}else if(pageNo=='4d'){
 		callForDashboardData('formIdIfAny','manage-exams-subject-List'+agrs, replaceDiv);
+	}else if(pageNo=='4e'){
+		callForDashboardData('formIdIfAny','manage-batch-content', replaceDiv);
 	}else if(pageNo=='5a'){
 		callForDashboardData('formIdIfAny','manage-counsultant-content'+agrs, replaceDiv);
 	}else if(pageNo=='5b'){

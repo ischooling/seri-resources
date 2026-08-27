@@ -1,5 +1,27 @@
 $(document).ready(function() {
 });
+
+function getStudentBatchListForSession(){
+	$("#batchId").html('<option value="0">Please select one</option>');
+	if($('#session').val()==null || $('#session').val()==0){
+		return false;
+	}
+	$.ajax({
+		type : "POST",
+		url : getURLForHTML('dashboard','manage-exams-batch-list'),
+		data : "sessionId="+$('#session').val(),
+		dataType : 'json',
+		cache : false,
+		success : function(batchList) {
+			$("#batchId").html('<option value="0">Please select one</option>');
+			$.each(batchList, function(index, batch) {
+				var selectedAttr = batch.active=='Y' ? ' selected' : '';
+				$("#batchId").append('<option value="'+batch.id+'"'+selectedAttr+'>'+batch.name+'</option>');
+			});
+		}
+	});
+}
+
 function emptyPreviousQualification(){
 	
 	var grateId='8';
@@ -855,6 +877,7 @@ function getRequestForAddStudent(formId,moduleId){
 			addStudentListDTO['sessionMonth'] = sessionValue[1];
 			addStudentListDTO['standardId'] = $('#standardId').val();
 			addStudentListDTO['countryId'] = $('#countryId').val();
+			addStudentListDTO['batchId'] = $('#batchId').val();
 		}
 	}else{
 		if(USER_ROLE == 4){
@@ -882,7 +905,10 @@ function getRequestForAddStudent(formId,moduleId){
 			addStudentListDTO['sessionYear'] = sessionValue[0];
 			addStudentListDTO['sessionMonth'] = sessionValue[1];
 		}
-		
+		if($('#batchId').val()!=undefined){
+			addStudentListDTO['batchId'] = $("#batchId").val();
+		}
+
 		addStudentListDTO['standardId'] = $("#standardId").val();
 		addStudentListDTO['studentName'] = $("#studentName").val();
 		addStudentListDTO['gender'] = $("#gender").val();
@@ -1154,6 +1180,10 @@ function validateRequestForAddStudent(formId,moduleId, MIN_SUBJECT, MAX_SUBJECT)
 	if($("#actiontype").val()=="changeSession"){
 		if ($("#session").val()==null || $("#session").val()==0 ) {
 			showMessage(true, 'session is required');
+			return false
+		}
+		if ($("#batchId").val()==null || $("#batchId").val()==0 ) {
+			showMessage(true, 'batch is required');
 			return false
 		}
 	}else if($("#actiontype").val()=="view"){

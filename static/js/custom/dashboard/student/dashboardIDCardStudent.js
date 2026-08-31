@@ -8,17 +8,19 @@ function changeSession(listType){
 		showStudentIdCard('manageStudentIdCard', arg, listType);
 		if(listType=='hallticket'){
 			getTargetBatchListForSession();
+		}
+		if(listType=='hallticket' || listType=='examsheet'){
 			getFilterBatchListForSession();
 		}
 	}
 }
 
-function filterHallTicketByBatch(){
+function filterHallTicketByBatch(listType){
 	var sessionValue = $('select#session option:selected').attr('sessionValue').split("-");
 	var filterBatchId = $('#filterBatchId').val();
-	var arg = "?sessionVal="+sessionValue[0]+"&sessionMonth="+sessionValue[1]+"&listType=hallticket&batchId="+filterBatchId;
+	var arg = "?sessionVal="+sessionValue[0]+"&sessionMonth="+sessionValue[1]+"&listType="+listType+"&batchId="+filterBatchId;
 	$('#manageStudentIdCard').dataTable().fnDestroy();
-	showStudentIdCard('manageStudentIdCard', arg, 'hallticket');
+	showStudentIdCard('manageStudentIdCard', arg, listType);
 }
 function showStudentIdCard(elementId, argument, listType){
 	console.log("argument => "+argument);
@@ -33,8 +35,10 @@ function showStudentIdCard(elementId, argument, listType){
 //             { "data": "action2", "name" : "action2" , "title" : "Hall ticket"},
 //             { "data": "action3", "name" : "action3" , "title" : "Exam Attendance sheet"}
 	];
+	if(listType=='hallticket' || listType=='examsheet'){
+		columns.splice(columns.length - 1, 0, { "data": "batchName", "name" : "batchName" , "title" : "Current Batch"});
+	}
 	if(listType=='hallticket'){
-		columns.push({ "data": "batchName", "name" : "batchName" , "title" : "Current Batch"});
 		columns.unshift({
 			"data": null,
 			"orderable": false,

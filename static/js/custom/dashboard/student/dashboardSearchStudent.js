@@ -11,8 +11,10 @@ function getSearchBatchListForSession(){
 		cache : false,
 		success : function(batchList) {
 			$("#searchBatchId").html('<option value="">All Batches</option>');
+			var activeSelected = false;
 			$.each(batchList, function(index, batch) {
-				var selectedAttr = batch.active=='Y' ? ' selected' : '';
+				var selectedAttr = '';
+				if (batch.active=='Y' && !activeSelected) { selectedAttr = ' selected'; activeSelected = true; }
 				$("#searchBatchId").append('<option value="'+batch.id+'"'+selectedAttr+'>'+batch.name+'</option>');
 			});
 		}

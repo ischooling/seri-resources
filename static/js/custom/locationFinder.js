@@ -1,17 +1,23 @@
 function callLocationDetails(formId, divId){
 	var timezoneValue='';
 	var cityName='';
-	$.getJSON("https://pro.ip-api.com/json/?key=9908tZlRhI0pK5W", function(data) {
-		var table_body = "";
-		table_body = "{";
-		$.each(data, function(k, v) {
-			table_body += "\"" + k + "\":" + "\"" + v + "\",";
-		});
-		table_body = table_body.substr(0, table_body.length - 1);
-		table_body += "}";
-		$("#"+formId+" #location").val(table_body);
-		if(divId!=''){
-			callForInquiryLocation(formId, divId, table_body)
+	$.ajax({
+		url : "https://pro.ip-api.com/json/?key=9908tZlRhI0pK5W",
+		dataType : "json",
+		timeout : 4000,
+		global : false,
+		success : function(data) {
+			var table_body = "";
+			table_body = "{";
+			$.each(data, function(k, v) {
+				table_body += "\"" + k + "\":" + "\"" + v + "\",";
+			});
+			table_body = table_body.substr(0, table_body.length - 1);
+			table_body += "}";
+			$("#"+formId+" #location").val(table_body);
+			if(divId!=''){
+				callForInquiryLocation(formId, divId, table_body)
+			}
 		}
 	});
 }

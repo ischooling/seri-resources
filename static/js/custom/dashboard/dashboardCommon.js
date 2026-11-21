@@ -26,6 +26,13 @@ function callForDashboardData(formId, actionUrl, replaceDiv, secondArgs) {
         					//moduleId=counselor & controllType=add & counselorId=0
         					var urls = actionUrl.split('&');
         					var modules=urls[0].split('=');
+        					// Guard: if actionUrl has no '&moduleId=x&controllType=y' pattern,
+        					// just render the HTML directly into replaceDiv
+        					if(urls.length < 2 || urls[1].indexOf('=') === -1){
+        						$('#'+replaceDiv).html(htmlContent);
+        						triggerDashboardModuleInit(actionUrl);
+        						return false;
+        					}
         					var controls=urls[1].split('=');
         					if(modules[1]=='counselor'){
         						if(controls[1]=='add'){

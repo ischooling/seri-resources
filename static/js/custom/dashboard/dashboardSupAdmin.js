@@ -18,6 +18,8 @@ function callDashboardPageSupAdmin(pageNo, replaceDiv, agrs, secondArgs){
 		callForDashboardData('formIdIfAny','manage-student-content'+agrs, replaceDiv, secondArgs);
 	}else if(pageNo=='3b'){
 		callForDashboardData('formIdIfAny','add-student-content'+agrs, replaceDiv);
+	}else if(pageNo=='3reg'){
+		callForDashboardData('formIdIfAny','registration-form-content', replaceDiv);
 	}else if(pageNo=='3c'){
 		callForDashboardData('formIdIfAny','student-id-card'+agrs, replaceDiv);
 	}else if(pageNo=='3d'){
@@ -148,6 +150,8 @@ function callDashboardPageSupAdmin(pageNo, replaceDiv, agrs, secondArgs){
 		callForDashboardData('formIdIfAny','iti-center-content', replaceDiv);
 	}else if(pageNo=='24b'){
 		callForDashboardData('formIdIfAny','iti-student-content', replaceDiv);
+	}else if(pageNo=='pmgmt'){
+		callForDashboardData('formIdIfAny','payment-management-content', replaceDiv);
 	}
 
 }

@@ -96,7 +96,7 @@ function getRequestForAddPreStudent(formId,moduleId){
 function validateRequestForAddPreStudent(formId,moduleId){
 	if($("#actiontype").val()!="view"){
 		if ($("#preEnrollmentNo").text()=="") {
-			showMessage(true, 'Enrolment number is required');
+			showMessage(true, 'Registration number is required');
 			return false
 		}
 		if ($("#preSession").val()==0 || $("#preSession").val()==null) {

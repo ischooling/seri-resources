@@ -386,7 +386,7 @@ function regBuildReview() {
 	}
 
 	var studentHtml = '';
-	studentHtml += rv('Application Number', $('#regEnrollmentNo').val());
+	studentHtml += rv('Registration Number', $('#regEnrollmentNo').val());
 	studentHtml += rv('Session', $('#regSession option:selected').text());
 	studentHtml += rv('Batch', $('#regBatchId option:selected').text());
 	studentHtml += rv('Grade', $('#regStandardId option:selected').text());

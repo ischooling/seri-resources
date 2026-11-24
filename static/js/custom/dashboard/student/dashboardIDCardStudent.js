@@ -26,7 +26,7 @@ function showStudentIdCard(elementId, argument, listType){
 	console.log("argument => "+argument);
 	var columns = [
              { "data": "sNo", "name" : "sNo", "title" : "S.No"  },
-             { "data": "enrollNo", "name" : "enrollNo" , "title" : "Application No"},
+             { "data": "enrollNo", "name" : "enrollNo" , "title" : "Registration No"},
              { "data": "rollNo", "name" : "rollNo" , "title" : "Roll no"},
              { "data": "studentName", "name" : "studentName" , "title" : "Student Name"},
              { "data": "dob", "name" : "dob" , "title" : "D.O.B"},

@@ -1249,7 +1249,7 @@ function validateRequestForAddStudent(formId,moduleId, MIN_SUBJECT, MAX_SUBJECT)
 	}else if($("#actiontype").val()=="add" || $("#actiontype").val()=="edit"){
 		
 		if ($("#enrollmentNo").text()=="") {
-			showMessage(true, 'Enrolment number is required');
+			showMessage(true, 'Registration number is required');
 			return false
 		}
 		if(USER_ROLE!=4 && !STUDENT_UPLOADED_BY_SCHOOL){
@@ -1941,8 +1941,10 @@ function showStudentListingWithQueries(elementId, argument, isB2BSchool){
 	        },
 	        "columns": [
 		         { "data": "sno", "name" : "sno", "title" : "S.No"  },
+		         { "data": "registrationNo", "name" : "registrationNo" , "title" : "Registration No", "defaultContent": ""},
 		         { "data": "rollNo", "name" : "rollNo" , "title" : "Roll No"},
 		         { "data": "studentName", "name" : "studentName" , "title" : "Student Name"},
+		         { "data": "studentEmail", "name" : "studentEmail" , "title" : "Email", "defaultContent": ""},
 		         { "data": "standardName", "name" : "standardName" , "title" : "Standard Name"},
 		         //{ "data": "formStatus", "name" : "formStatus" , "title" : "Status"},
 //		         { "data": "addedDate", "name" : "addedDate" , "title" : "Added Date"},
@@ -1987,8 +1989,10 @@ function showStudentListingWithQueries(elementId, argument, isB2BSchool){
 	        },
 	        "columns": [
 		         { "data": "sno", "name" : "sno", "title" : "S.No"  },
+		         { "data": "registrationNo", "name" : "registrationNo" , "title" : "Registration No", "defaultContent": ""},
 		         { "data": "rollNo", "name" : "rollNo" , "title" : "Roll No"},
 		         { "data": "studentName", "name" : "studentName" , "title" : "Student Name"},
+		         { "data": "studentEmail", "name" : "studentEmail" , "title" : "Email", "defaultContent": ""},
 		         { "data": "consultantName", "name" : "consultantName" , "title" : "Added By"},
 		         { "data": "schoolName", "name" : "schoolName" , "title" : "School Name"},
 		         { "data": "standardName", "name" : "standardName" , "title" : "Standard Name"},

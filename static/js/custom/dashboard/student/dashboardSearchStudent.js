@@ -22,7 +22,9 @@ function getSearchBatchListForSession(){
 }
 
 function searchStudent(){
-	$("#studentManageHead").text("Approved Student");
+	var statusFilter = $("#studentStatusFilter").val() || "";
+	var statusLabels = {approve: "Approved Student", pending: "Pending Student", paymentpending: "Payment Pending", reject: "Rejected Student"};
+	$("#studentManageHead").text(statusLabels[statusFilter] || "Manage Student");
 	var sessionYear='';
 	var sessionMonth='';
 	if($('#session').val()!=undefined && $('#session').val()!=''){
@@ -52,7 +54,7 @@ function searchStudent(){
 	}
 	var elementId = 'manageStudent';
 	//$('#'+elementId).dataTable().fnDestroy();
-	showStudentListingWithQueries(elementId, "?sessionYear="+sessionYear+"&sessionMonth="+sessionMonth+"&recommendedBy="+recommendedBy+"&dob="+dob+"&rollNo="+rollNo+"&studentName="+studentName+"&fathername="+fathername+"&schoolId="+schoolId+"&batchId="+batchId+"&feeStatus=false&studentStatus=", schoolType);
+	showStudentListingWithQueries(elementId, "?sessionYear="+sessionYear+"&sessionMonth="+sessionMonth+"&recommendedBy="+recommendedBy+"&dob="+dob+"&rollNo="+rollNo+"&studentName="+studentName+"&fathername="+fathername+"&schoolId="+schoolId+"&batchId="+batchId+"&feeStatus=false&studentStatus="+statusFilter, schoolType);
 	$("#searchOption").modal('toggle');
 	return false;
 }

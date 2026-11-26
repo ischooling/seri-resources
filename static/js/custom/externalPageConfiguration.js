@@ -1,12 +1,12 @@
 BASE_URL = '';
 if (ENVIRONMENT == 'uat') {
-	BASE_URL = 'http://164.52.208.63:7300/';
+	BASE_URL = 'https://uat.seriindia.org/';
 } else if (ENVIRONMENT == 'dev') {
 	BASE_URL = 'http://localhost:8080/istest/';
 } else if (ENVIRONMENT == 'dev-staging') {
-	BASE_URL = 'http://164.52.208.63:7300/';
+	BASE_URL = 'https://uat.seriindia.org/';
 } else {
-	BASE_URL = 'http://164.52.208.63:7300/';
+	BASE_URL = 'https://uat.seriindia.org/';
 }
 var API_VERSION = CONTEXT_PATH+'api/v1/';
 function getURLForCommon(suffixUrl){
